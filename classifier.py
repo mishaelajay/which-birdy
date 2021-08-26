@@ -1,3 +1,6 @@
+"""
+bird classifier
+"""
 import os
 import tensorflow.compat.v2 as tf
 import tensorflow_hub as hub
@@ -10,20 +13,22 @@ import constants
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Disable Tensorflow logging
 
-image_urls = constants.IMAGE_URLS
-model_url = constants.MODEL_URL
-labels_url = constants.LABELS_URL
+IMAGE_URLS = constants.IMAGE_URLS
+MODEL_URL = constants.MODEL_URL
+LABELS_URL = constants.LABELS_URL
 
-
+"""
+bird classifier
+"""
 class BirdClassifier:
     @staticmethod
     def load_model():
-        return hub.KerasLayer(model_url)
+        return hub.KerasLayer(MODEL_URL)
 
     def load_and_cleanup_labels(self):
-        bird_labels_raw = urllib.request.urlopen(labels_url)
-        bird_labels_lines = [line.decode('utf-8').replace('\n', '') for line in bird_labels_raw.readlines()]
-        bird_labels_lines.pop(0)  # remove header (id, name)
+        bird_labels_raw = urllib.request.urlopen(LABELS_URL)
+        bird_labels_lines = self.fetch_lines_from_label(bird_labels_raw)
+        bird_labels_lines.pop(0)
         birds = {}
         for bird_line in bird_labels_lines:
             bird_id = int(bird_line.split(',')[0])
@@ -31,6 +36,9 @@ class BirdClassifier:
             birds[bird_id] = {'name': bird_name}
 
         return birds
+
+    def fetch_lines_from_label(self, bird_labels_raw):
+        return [line.decode('utf-8').replace('\n', '') for line in bird_labels_raw.readlines()]
 
     def order_birds_by_result_score(self, model_raw_output, bird_labels):
         for index, value in np.ndenumerate(model_raw_output):
@@ -45,7 +53,7 @@ class BirdClassifier:
         return bird_name, bird_score
 
     def main(self):
-        for index, image_url in enumerate(image_urls):
+        for index, image_url in enumerate(IMAGE_URLS):
             bird_model = self.load_model()
             bird_labels = self.load_and_cleanup_labels()
             # Loading images
@@ -60,7 +68,8 @@ class BirdClassifier:
             image_tensor = tf.convert_to_tensor(image, dtype=tf.float32)
             image_tensor = tf.expand_dims(image_tensor, 0)
             model_raw_output = bird_model.call(image_tensor).numpy()
-            birds_names_with_results_ordered = self.order_birds_by_result_score(model_raw_output, bird_labels)
+            birds_names_with_results_ordered = \
+                self.order_birds_by_result_score(model_raw_output, bird_labels)
             # Print results to kubernetes log
             print('Run: %s' % int(index + 1))
             bird_name, bird_score = self.get_top_n_result(1, birds_names_with_results_ordered)
