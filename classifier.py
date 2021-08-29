@@ -5,6 +5,8 @@ import cv2
 import urllib.request
 import numpy as np
 import time
+import constants
+from image import PredictableImage
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Disable Tensorflow logging
@@ -66,7 +68,22 @@ class BirdClassifier:
             image_tensor = tf.convert_to_tensor(image, dtype=tf.float32)
             image_tensor = tf.expand_dims(image_tensor, 0)
             model_raw_output = bird_model.call(image_tensor).numpy()
-            birds_names_with_results_ordered = self.order_birds_by_result_score(model_raw_output, bird_labels)
+            birds_names_with_results_ordered = \
+                self.order_birds_by_result_score(model_raw_output, bird_labels)
+        return birds_names_with_results_ordered
+
+    def main(self):
+        for index, image_url in enumerate(IMAGE_URLS):
+            bird_model = self.load_model()
+            bird_labels = self.load_and_cleanup_labels()
+            # Initiate Image object
+            image = PredictableImage(image_url)
+            image_array = image.load()
+            pre_processed_image = image.pre_process(image_array)
+            image_tensor = image.generate_image_tensor(pre_processed_image)
+            model_raw_output = bird_model.call(image_tensor).numpy()
+            birds_names_with_results_ordered = \
+                self.order_birds_by_result_score(model_raw_output, bird_labels)
             # Print results to kubernetes log
             print('Run: %s' % int(index + 1))
             bird_name, bird_score = self.get_top_n_result(1, birds_names_with_results_ordered)
