@@ -2,12 +2,14 @@
 bird classifier
 """
 import os
+from re import L
 import urllib.request
 import time
-import tensorflow_hub as hub
 import numpy as np
 import constants
 from image import Image
+from model import Model
+from labels import Labels
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Disable Tensorflow logging
@@ -20,26 +22,6 @@ LABELS_URL = constants.LABELS_URL
 bird classifier
 """
 class BirdClassifier:
-    @staticmethod
-    def load_model():
-        return hub.KerasLayer(MODEL_URL)
-
-    def load_and_cleanup_labels(self):
-        # bird_labels_raw = urllib.request.urlopen(LABELS_URL)
-        with urllib.request.urlopen(LABELS_URL) as bird_labels_raw:
-            bird_labels_lines = self.fetch_lines_from_label(bird_labels_raw)
-            bird_labels_lines.pop(0)
-            birds = {}
-            for bird_line in bird_labels_lines:
-                bird_id = int(bird_line.split(',')[0])
-                bird_name = bird_line.split(',')[1]
-                birds[bird_id] = {'name': bird_name}
-        return birds
-
-    @classmethod
-    def fetch_lines_from_label(cls, bird_labels_raw):
-        return [line.decode('utf-8').replace('\n', '') for line in bird_labels_raw.readlines()]
-
     @classmethod
     def order_birds_by_result_score(cls, model_raw_output, bird_labels):
         for index, value in np.ndenumerate(model_raw_output):
@@ -54,14 +36,22 @@ class BirdClassifier:
         bird_score = birds_names_with_results_ordered[top_index*(-1)][1]['score']
         return bird_name, bird_score
 
-    def get_results_for_file(self, url):
-        bird_model = self.load_model()
-        bird_labels = self.load_and_cleanup_labels()
-        # Initiate Image object
+    @classmethod
+    def load_model_and_clean_labels(self, model_url, labels_url):
+        bird_model = Model(MODEL_URL).loaded_model
+        bird_labels = Labels(LABELS_URL).load_and_cleanup()
+        return bird_model, bird_labels
+
+    @classmethod
+    def load_and_prep_image(self, url):
         image = Image(url)
         image_array = image.load()
         pre_processed_image = image.pre_process(image_array)
-        image_tensor = image.generate_image_tensor(pre_processed_image)
+        return image.generate_image_tensor(pre_processed_image)
+
+    def get_results_for_file(self, url):
+        bird_model, bird_labels = self.load_model_and_clean_labels(MODEL_URL, LABELS_URL)
+        image_tensor = self.load_and_prep_image(url)
         model_raw_output = bird_model.call(image_tensor).numpy()
         birds_names_with_results_ordered = \
             self.order_birds_by_result_score(model_raw_output, bird_labels)
