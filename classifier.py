@@ -4,11 +4,8 @@ bird classifier
 import os
 import urllib.request
 import time
-import tensorflow.compat.v2 as tf
 import tensorflow_hub as hub
-import cv2
 import numpy as np
-import time
 import constants
 from image import Image
 
@@ -69,7 +66,7 @@ class BirdClassifier:
         birds_names_with_results_ordered = \
             self.order_birds_by_result_score(model_raw_output, bird_labels)
         return birds_names_with_results_ordered
-        
+
     def print_results(self, index, birds_names_with_results_ordered):
         # Print results to kubernetes log
         print('Run: %s' % int(1 + index))
