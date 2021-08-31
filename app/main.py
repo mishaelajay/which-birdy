@@ -1,5 +1,3 @@
-# Library imports
-import uvicorn
 from fastapi import FastAPI, File, UploadFile
 from typing import List
 from classifier import BirdClassifier
@@ -18,7 +16,3 @@ async def classify_bird(image_urls: List[str]):
     BC = BirdClassifier()
     ordered_results = BC.get_results_for_file(image_urls[0])
     return {}
-
-# Will run on http://127.0.0.1:8000
-if __name__ == '__main__':
-    uvicorn.run(app, host='127.0.0.1', port=8000)
