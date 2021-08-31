@@ -5,6 +5,7 @@ class Model:
     """ Model class to handle model related operations """
     def __init__(self, model_url):
         self.model_url = model_url
+        self.loaded_model = None
 
     def load(self):
         """ Load model using model url """

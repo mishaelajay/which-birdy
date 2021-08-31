@@ -1,3 +1,4 @@
+"""Labels class to load and read labels"""
 import urllib.request
 
 class Labels:
@@ -7,6 +8,7 @@ class Labels:
         self.labels_url = labels_url
 
     def load_and_cleanup(self):
+        """ Load labels csv and clean it up """
         with urllib.request.urlopen(self.labels_url) as bird_labels_raw:
             bird_labels_lines = self.fetch_lines_from_label(bird_labels_raw)
             bird_labels_lines.pop(0)
@@ -17,7 +19,7 @@ class Labels:
                 birds[bird_id] = {'name': bird_name}
         return birds
 
-        
     @classmethod
     def fetch_lines_from_label(cls, bird_labels_raw):
+        """ Read lines from cleaned up labels """
         return [line.decode('utf-8').replace('\n', '') for line in bird_labels_raw.readlines()]
