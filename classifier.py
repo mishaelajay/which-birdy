@@ -4,11 +4,10 @@ bird classifier
 import os
 import urllib.request
 import time
-import tensorflow.compat.v2 as tf
 import tensorflow_hub as hub
-import cv2
 import numpy as np
 import constants
+from image import Image
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Disable Tensorflow logging
@@ -58,47 +57,32 @@ class BirdClassifier:
     def get_results_for_file(self, url):
         bird_model = self.load_model()
         bird_labels = self.load_and_cleanup_labels()
-        with urllib.request.urlopen(url) as image_get_response:
-            image_array = np.asarray(bytearray(image_get_response.read()), dtype=np.uint8)
-            image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-            image = cv2.resize(image, (224, 224))
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            image = image / 255
-            image_tensor = tf.convert_to_tensor(image, dtype=tf.float32)
-            image_tensor = tf.expand_dims(image_tensor, 0)
-            model_raw_output = bird_model.call(image_tensor).numpy()
-            birds_names_with_results_ordered = \
-                self.order_birds_by_result_score(model_raw_output, bird_labels)
+        # Initiate Image object
+        image = Image(url)
+        image_array = image.load()
+        pre_processed_image = image.pre_process(image_array)
+        image_tensor = image.generate_image_tensor(pre_processed_image)
+        model_raw_output = bird_model.call(image_tensor).numpy()
+        birds_names_with_results_ordered = \
+            self.order_birds_by_result_score(model_raw_output, bird_labels)
         return birds_names_with_results_ordered
+
+    def print_results(self, index, birds_names_with_results_ordered):
+        # Print results to kubernetes log
+        print('Run: %s' % int(1 + index))
+        bird_name, bird_score = self.get_top_n_result(1, birds_names_with_results_ordered)
+        print('Top match: "%s" with score: %s' % (bird_name, bird_score))
+        bird_name, bird_score = self.get_top_n_result(2, birds_names_with_results_ordered)
+        print('Second match: "%s" with score: %s' % (bird_name, bird_score))
+        bird_name, bird_score = self.get_top_n_result(3, birds_names_with_results_ordered)
+        print('Third match: "%s" with score: %s' % (bird_name, bird_score))
+        print('\n')
+
 
     def main(self):
         for index, image_url in enumerate(IMAGE_URLS):
-            bird_model = self.load_model()
-            bird_labels = self.load_and_cleanup_labels()
-            # Loading images
-            with urllib.request.urlopen(image_url) as image_get_response:
-                image_array = np.asarray(bytearray(image_get_response.read()), dtype=np.uint8)
-                # Changing images
-                image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-                image = cv2.resize(image, (224, 224))
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                image = image / 255
-                # Generate tensor
-                image_tensor = tf.convert_to_tensor(image, dtype=tf.float32)
-                image_tensor = tf.expand_dims(image_tensor, 0)
-                model_raw_output = bird_model.call(image_tensor).numpy()
-            birds_names_with_results_ordered = \
-                self.order_birds_by_result_score(model_raw_output, bird_labels)
-            # Print results to kubernetes log
-            print('Run: %s' % int(index + 1))
-            bird_name, bird_score = self.get_top_n_result(1, birds_names_with_results_ordered)
-            print('Top match: "%s" with score: %s' % (bird_name, bird_score))
-            bird_name, bird_score = self.get_top_n_result(2, birds_names_with_results_ordered)
-            print('Second match: "%s" with score: %s' % (bird_name, bird_score))
-            bird_name, bird_score = self.get_top_n_result(3, birds_names_with_results_ordered)
-            print('Third match: "%s" with score: %s' % (bird_name, bird_score))
-            print('\n')
-
+            birds_names_with_results_ordered = self.get_results_for_file(image_url)
+            self.print_results(index, birds_names_with_results_ordered)
 
 if __name__ == "__main__":
     start_time = time.time()
