@@ -98,7 +98,7 @@ class BirdClassifier:
 
     def main(self):
         """ Main function """
-        for index, image_url in enumerate(IMAGE_URLS):
+        for index, image_url in enumerate(DEFAULT_IMAGE_URLS):
             birds_names_with_results_ordered = self.get_results_for_image(image_url)
             self.print_results(index, birds_names_with_results_ordered)
 
