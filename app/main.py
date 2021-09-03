@@ -22,10 +22,11 @@ cleaned_labels = labels.load_and_cleanup()
 # Load the main classifier withmodel and labels
 bird_classifier = BirdClassifier(model, cleaned_labels)
 
-# input class for image urls
+# input class for image urlss
 class BirdInput(BaseModel):
     image_urls: Optional[List[str]] = None
     number_of_predictions: Optional[int] = 3
+    precision: Optional[float] = 0.0
 
 # Index route, opens automatically on http://127.0.0.1:8000
 @app.get('/')
@@ -35,7 +36,6 @@ def index():
 # Takes image url as input and returns top 3 results as output
 @app.post('/which-bird')
 async def classify_bird(images: List[BirdInput]):
-    pdb.set_trace()
     ordered_results = bird_classifier.get_results_for_images(images.image_urls)
     return {}
 
