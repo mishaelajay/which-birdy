@@ -1,6 +1,7 @@
 """Labels class to load and read labels"""
 import urllib.request
 
+
 class Labels:
     """Labels class to load and read labels"""
 
