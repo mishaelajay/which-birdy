@@ -1,14 +1,11 @@
 """ Model class to handle model related operations """
-from PIL import Image
-import cv2
 import tensorflow_hub as hub
-import numpy as np
 from image_processor import ImageProcessor
 
+warmup_image_path = 'app/tests/images/Eumomota_superciliosa.jpeg'
 
 class Model:
     """ Model class to handle model related operations """
-
     def __init__(self, model_url):
         self.model_url = model_url
         self.loaded_model = None
@@ -19,17 +16,15 @@ class Model:
         return self.loaded_model
 
     def warmup(self):
-        warmup_image = self.warmup_image()
-        image_tensor = ImageProcessor.generate_image_tensor(warmup_image)
-        self.predict(image_tensor)
+        """ Warming up model for faster results """
+        warmup_image_tensor = self.warmup_image_tensor()
+        self.predict(warmup_image_tensor)
 
     @staticmethod
-    def warmup_image():
-        image = Image.open('app/tests/images/Eumomota_superciliosa.jpeg')
-        image_array = np.asarray(image)
-        image = cv2.resize(image_array, (224, 224))
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        return image / 255
+    def warmup_image_tensor():
+        """ Method to fetch and generate warmup image tensor """
+        image_processor = ImageProcessor(warmup_image_path)
+        return image_processor.load_and_prep_image()
 
     def predict(self, image_tensor):
         """ Predict image tensor """
