@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from classifier import BirdClassifier
 import uvicorn
-import pdb
+import time
 from model import Model
 from labels import Labels
 import constants
@@ -45,7 +45,9 @@ def index():
 # Takes image url as input and returns top 3 results as output
 @app.post('/which-bird')
 async def classify_bird(bird_input: BirdInput):
+    start_time = time.time()
     ordered_results = bird_classifier.get_results_for_bird_input(bird_input)
+    ordered_results['time_taken'] = time.time() - start_time
     return str(ordered_results)
 
 
