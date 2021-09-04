@@ -8,13 +8,19 @@ from model import Model
 from labels import Labels
 import constants
 
+# TODO: if __name__ == "__main__"
+
 # Create the app object
 app = FastAPI()
 
+# TODO: put in function
 # Load the model
 model = Model(constants.MODEL_URL)
 model.load()
+model.warmup()
 
+
+# TODO: in a function
 # Load and clean labels
 labels = Labels(constants.LABELS_URL)
 cleaned_labels = labels.load_and_cleanup()
@@ -27,7 +33,7 @@ bird_classifier = BirdClassifier(model, cleaned_labels)
 class BirdInput(BaseModel):
     image_urls: Optional[List[str]] = None
     number_of_predictions: Optional[int] = 3
-    precision: Optional[float] = 0.0
+    minimum_score: Optional[float] = 0.0
 
 
 # Index route, opens automatically on http://127.0.0.1:8000
@@ -38,13 +44,9 @@ def index():
 
 # Takes image url as input and returns top 3 results as output
 @app.post('/which-bird')
-async def classify_bird(images: List[BirdInput]):
-    ordered_results = bird_classifier.get_results_for_images(images.image_urls)
-    return {}
-
-
-def form_result_dict(ordered_results):
-    return {}
+async def classify_bird(bird_input: BirdInput):
+    ordered_results = bird_classifier.get_results_for_bird_input(bird_input)
+    return str(ordered_results)
 
 
 if __name__ == "__main__":

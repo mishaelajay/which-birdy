@@ -32,3 +32,9 @@ class ImageProcessor:
         image_tensor = tf.convert_to_tensor(pre_processed_image, dtype=tf.float32)
         image_tensor = tf.expand_dims(image_tensor, 0)
         return image_tensor
+
+    def load_and_prep_image(self):
+        """ Fetch image and resize for model """
+        image_array = self.load()
+        pre_processed_image = self.pre_process(image_array)
+        return self.generate_image_tensor(pre_processed_image)

@@ -1,5 +1,5 @@
 """ Model class to handle model related operations """
-import PIL
+from PIL import Image
 import cv2
 import tensorflow_hub as hub
 import numpy as np
@@ -25,7 +25,7 @@ class Model:
 
     @staticmethod
     def warmup_image():
-        image = PIL.Image.open('tests/images/Eumomota_superciliosa.jpeg')
+        image = Image.open('app/tests/images/Eumomota_superciliosa.jpeg')
         image_array = np.asarray(image)
         image = cv2.resize(image_array, (224, 224))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

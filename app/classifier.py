@@ -49,48 +49,50 @@ class BirdClassifier:
             bird_index = index[1]
             bird_labels[bird_index]['score'] = value
 
-        return sorted(bird_labels.items(), key=lambda x: x[1]['score'])
+        return sorted(bird_labels.items(), key=lambda x: x[1]['score'], reverse=True)
 
     @classmethod
     def get_top_n_result(cls, top_index, birds_names_with_results_ordered):
         """ Get top n results from ordered results """
-        bird_name = birds_names_with_results_ordered[top_index * (-1)][1]['name']
-        bird_score = birds_names_with_results_ordered[top_index * (-1)][1]['score']
+        bird_name = birds_names_with_results_ordered[top_index][1]['name']
+        bird_score = birds_names_with_results_ordered[top_index][1]['score']
         return bird_name, bird_score
 
     @classmethod
-    def load_and_prep_image(cls, url):
-        """ Fetch image and resize for model """
-        image = ImageProcessor(url)
-        image_array = image.load()
-        pre_processed_image = image.pre_process(image_array)
-        return image.generate_image_tensor(pre_processed_image)
+    def get_top_n_results(cls, ordered_results, n, minimum_score):
+        top_n_results = ordered_results[:n]
+        filtered_results = [result[1] for result in top_n_results if result[1]['score'] > minimum_score]
+        return filtered_results
 
     def get_results_for_image(self, image_url):
         """ Get all results for a given image file """
         bird_model = self.fetch_or_load_model()
         bird_labels = self.fetch_or_load_clean_labels()
-        image_tensor = self.load_and_prep_image(image_url)
+        image_tensor = ImageProcessor(image_url).load_and_prep_image()
         model_raw_output = bird_model.predict(image_tensor)
         birds_names_with_results_ordered = \
             self.order_birds_by_result_score(model_raw_output, bird_labels)
         return birds_names_with_results_ordered
 
-    def get_results_for_images(self, urls):
-        result_list = []
-        for image_url in enumerate(urls):
-            birds_names_with_results_ordered = self.get_results_for_image(image_url)
-            result_list.append(birds_names_with_results_ordered)
+    def get_results_for_bird_input(self, bird_input):
+        result_list = {}
+        for image_url in bird_input.image_urls:
+            birds_names_with_results_ordered = \
+                self.get_results_for_image(image_url)
+            result_list[image_url] = \
+                self.get_top_n_results(
+                    birds_names_with_results_ordered, bird_input.number_of_predictions, bird_input.minimum_score
+                )
         return result_list
 
     def print_results(self, index, birds_names_with_results_ordered):
         """ Print results to kubernetes log """
         print('Run: %s' % int(1 + index))
-        bird_name, bird_score = self.get_top_n_result(1, birds_names_with_results_ordered)
+        bird_name, bird_score = self.get_top_n_result(0, birds_names_with_results_ordered)
         print('Top match: "%s" with score: %s' % (bird_name, bird_score))
-        bird_name, bird_score = self.get_top_n_result(2, birds_names_with_results_ordered)
+        bird_name, bird_score = self.get_top_n_result(1, birds_names_with_results_ordered)
         print('Second match: "%s" with score: %s' % (bird_name, bird_score))
-        bird_name, bird_score = self.get_top_n_result(3, birds_names_with_results_ordered)
+        bird_name, bird_score = self.get_top_n_result(2, birds_names_with_results_ordered)
         print('Third match: "%s" with score: %s' % (bird_name, bird_score))
         print('\n')
 
@@ -106,6 +108,9 @@ if __name__ == "__main__":
     # Load the model
     model = Model(constants.MODEL_URL)
     model.load()
+
+    # Warmup for faster prediction
+    model.warmup()
 
     # Load and clean labels
     labels = Labels(constants.LABELS_URL)
