@@ -2,7 +2,6 @@
 bird classifier
 """
 import os
-import pdb
 import time
 import numpy as np
 import constants
