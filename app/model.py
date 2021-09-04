@@ -29,3 +29,8 @@ class Model:
     def predict(self, image_tensor):
         """ Predict image tensor """
         return self.loaded_model.call(image_tensor).numpy()
+
+    def load_and_warmup(self):
+        self.load()
+        self.warmup()
+        return self.loaded_model
