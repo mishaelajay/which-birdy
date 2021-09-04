@@ -7,4 +7,3 @@ IMAGE_URLS = [
 ]
 MODEL_URL = 'https://tfhub.dev/google/aiy/vision/classifier/birds_V1/1'
 LABELS_URL = 'https://www.gstatic.com/aihub/tfhub/labelmaps/aiy_birds_V1_labelmap.csv'
-
