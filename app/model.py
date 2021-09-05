@@ -1,5 +1,6 @@
 """ Model class to handle model related operations """
 import tensorflow_hub as hub
+import os
 from image_processor import ImageProcessor
 
 warmup_image_path = 'app/tests/images/Eumomota_superciliosa.jpeg'

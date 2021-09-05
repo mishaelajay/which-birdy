@@ -22,7 +22,7 @@ class ImageProcessor:
         if self.loaded_image:
             return self.loaded_image
         else:
-            if self.is_url():
+            if self.is_url(self.source):
                 return self.load_from_url()
             elif self.is_file_path():
                 return self.load_from_path()
@@ -49,10 +49,11 @@ class ImageProcessor:
         """ Check if source is a valid file path"""
         return Path(self.source).is_file()
 
-    def is_url(self):
+    @classmethod
+    def is_url(cls, url):
         """ Check if url is valid before loading """
         try:
-            result = urlparse(self.source)
+            result = urlparse(url)
             return all([result.scheme, result.netloc])
         except ValueError:
             return False
