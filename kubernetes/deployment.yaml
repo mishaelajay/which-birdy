@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # App name
+  name: which-birdy-deployment
+spec:
+  # Creating two pods
+  replicas: 2
+  selector:
+    matchLabels:
+      app: which-birdy-deployment
+  template:
+    metadata:
+      labels:
+        app: which-birdy-deployment
+    spec:
+      containers:
+        - name: which-birdy-deployment
+          # DockerHub Image
+          image: mishaelajay/which-birdy:latest
+          ports:
+            # Opening Port 80 for fast API
+            - containerPort: 80
+              name: restapi

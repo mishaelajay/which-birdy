@@ -1,0 +1,19 @@
+apiVersion: v1
+# service type
+kind: Service
+metadata:
+  # Service name
+  labels:
+    run: which-birdy-service
+  name: which-birdy-service
+spec:
+  ports:
+    # Link Port 80 from all nodes from app: which-birdy-deployment
+    # port = Incoming Port, targetPort = Routed port
+    - port: 80
+      targetPort: 80
+      name: restapi
+  selector:
+    # Select app name, Which is which-birdy-deployment defined in deployment.yaml
+    app: which-birdy-deployment
+  type: LoadBalancer
