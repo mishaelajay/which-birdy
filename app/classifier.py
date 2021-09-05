@@ -19,7 +19,7 @@ DEFAULT_LABELS_URL = constants.LABELS_URL
 class BirdClassifier:
     """ For classifying birds """
 
-    def __init__(self, model, cleaned_labels):
+    def __init__(self, model=None, cleaned_labels=None):
         self.model = model
         self.cleaned_labels = cleaned_labels
 
@@ -78,7 +78,7 @@ class BirdClassifier:
         for image_url in bird_input.image_urls:
             birds_names_with_results_ordered = \
                 self.get_results_for_image(image_url)
-            result_list[image_url] = \
+            result_list[image_url.__str__()] = \
                 self.get_top_n_results(
                     birds_names_with_results_ordered, bird_input.number_of_predictions, bird_input.minimum_score
                 )
