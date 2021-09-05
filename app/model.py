@@ -4,8 +4,10 @@ from image_processor import ImageProcessor
 
 warmup_image_path = 'app/tests/images/Eumomota_superciliosa.jpeg'
 
+
 class Model:
     """ Model class to handle model related operations """
+
     def __init__(self, model_url):
         self.model_url = model_url
         self.loaded_model = None
