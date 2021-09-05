@@ -59,8 +59,10 @@ class BirdClassifier:
 
     @classmethod
     def get_top_n_results(cls, ordered_results, n, minimum_score):
+        """ Get top n filtered results based on minimum score"""
         top_n_results = ordered_results[:n]
-        filtered_results = [result[1] for result in top_n_results if result[1]['score'] > minimum_score]
+        filtered_results = \
+            [result[1] for result in top_n_results if result[1]['score'] > minimum_score]
         return filtered_results
 
     def get_results_for_image(self, image_url):
@@ -74,13 +76,16 @@ class BirdClassifier:
         return birds_names_with_results_ordered
 
     def get_results_for_bird_input(self, bird_input):
+        """ Get prediction results for bird input object """
         result_list = {}
         for image_url in bird_input.image_urls:
             birds_names_with_results_ordered = \
                 self.get_results_for_image(image_url)
             result_list[image_url.__str__()] = \
                 self.get_top_n_results(
-                    birds_names_with_results_ordered, bird_input.number_of_predictions, bird_input.minimum_score
+                    birds_names_with_results_ordered,
+                    bird_input.number_of_predictions,
+                    bird_input.minimum_score
                 )
         return result_list
 

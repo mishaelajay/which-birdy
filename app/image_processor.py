@@ -2,11 +2,11 @@
 A class to perform Image related operations before prediction by model
 """
 import urllib.request
+from urllib.parse import urlparse
+from pathlib import Path
 import cv2
 import numpy as np
 import tensorflow.compat.v2 as tf
-from urllib.parse import urlparse
-from pathlib import Path
 from PIL import Image
 
 
@@ -19,15 +19,17 @@ class ImageProcessor:
 
     def load(self):
         """ Load based on type of source entered """
+        loaded_image = None
         if self.loaded_image:
-            return self.loaded_image
+            loaded_image =  self.loaded_image
         else:
             if self.is_url(self.source):
-                return self.load_from_url()
+                loaded_image = self.load_from_url()
             elif self.is_file_path():
-                return self.load_from_path()
+                loaded_image = self.load_from_path()
             else:
                 raise ValueError('Source is neither valid url nor path')
+        return loaded_image
 
     def load_from_url(self):
         """ Read image from url """
@@ -36,9 +38,10 @@ class ImageProcessor:
                 image_array = np.asarray(bytearray(image_get_response.read()), dtype=np.uint8)
                 # return image after colour correction
                 return cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-        except urllib.error.HTTPError as e:
+        except urllib.error.HTTPError as error:
             print('Could not open Image')
-            print('Error details %s' % str(e))
+            print('Error details %s' % str(error))
+            return False
 
     def load_from_path(self):
         """ Read image from path """

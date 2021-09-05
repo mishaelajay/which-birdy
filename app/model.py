@@ -1,9 +1,8 @@
 """ Model class to handle model related operations """
 import tensorflow_hub as hub
-import os
 from image_processor import ImageProcessor
 
-warmup_image_path = 'app/tests/images/Eumomota_superciliosa.jpeg'
+WARMUP_IMAGE_PATH = 'app/tests/images/Eumomota_superciliosa.jpeg'
 
 
 class Model:
@@ -26,7 +25,7 @@ class Model:
     @staticmethod
     def warmup_image_tensor():
         """ Method to fetch and generate warmup image tensor """
-        image_processor = ImageProcessor(warmup_image_path)
+        image_processor = ImageProcessor(WARMUP_IMAGE_PATH)
         return image_processor.load_and_prep_image()
 
     def predict(self, image_tensor):
@@ -34,6 +33,7 @@ class Model:
         return self.loaded_model.call(image_tensor).numpy()
 
     def load_and_warmup(self):
+        """ Return model after loading and warmup """
         self.load()
         self.warmup()
         return self.loaded_model
