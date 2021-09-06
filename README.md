@@ -77,6 +77,7 @@ Further improvements (Can be done with more time):
 - A better customised docker image instead of using https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker.
 - Further validation of input and output.
 - Better error handling and logging.
+- Use a redis cache/postgres to store url and respective predictions. Fetch from cache/db if available when a request is made.
 
 Please refer to ```deployment.yaml``` and ```service.yaml``` in kubernetes folder for kubectl deployment details. I can show you my gcp dashboard as well. 
 
